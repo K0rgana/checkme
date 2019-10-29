@@ -23,9 +23,9 @@
                 </div>
                 <select class="custom-select" id="inputGroupSelect01">
                     <option selected>Selecionar...</option>
-                    <option value="1">One</option>
-                    <option value="2">Two</option>
-                    <option value="3">Three</option>
+                    @foreach ($usuario as $usuario)
+                        <option value="{{$usuario->id}}">{{$usuario->name}}</option>
+                    @endforeach
                 </select>
             </div>
 
