@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\User;
+use App\Checkup;
 
 class CheckupController extends Controller
 {
@@ -13,7 +15,12 @@ class CheckupController extends Controller
      */
     public function index()
     {
-        //
+        if(Auth::user()->tipo != 'medico'){
+            $checkups = Checkup::all()->where('fk_users_id',Auth::user()->id);
+            return view('checkup.listapac', compact('checkups'));
+        }
+        $checkups = Checkup::orderBy('created_at', 'description')->paginate(10);
+        return view('checkup.listamed', compact('checkups'));
     }
 
     /**
@@ -23,7 +30,13 @@ class CheckupController extends Controller
      */
     public function create()
     {
-        return view('checkup.form');
+        if(Auth::user()->tipo == 'medico'){
+            $usu = User::All()->where('tipo','usuario');
+            return view('checkup.form', compact('usuario'));
+        }
+        
+        return redirect()->route('home');
+
     }
 
     /**
@@ -35,17 +48,19 @@ class CheckupController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'data_checkup'=>'required',
-            'peso'=>'required',
-            'altura'=>'required',
-            'art_pressao'=>'required',
-            'glicose'=>'required',
-            'colesterol_ldl'=>'required',
-            'colesterol_hdl'=>'required',
-            'observacoes'=>'required'
+            'fk_users_id' => 'required|numeric|min:0',
+            'data_checkup'=>'required|date|min:4|max:10',
+            'peso'=>'required|numeric|min:0.1|max:400',
+            'altura'=>'required|numeric|min:0.1|max:3',
+            'art_pressao'=>'required|string|min:4|max:30',
+            'glicose'=>'required|numeric|integer|min:1|max:200',
+            'colesterol_ldl'=>'required|numeric|min:1|max:200',
+            'colesterol_hdl'=>'required|numeric|min:2|max:100',
+            'observacoes'=>'required|string|min:1|max:500'
         ]);
 
         $checkup = new Checkup([
+            'fk_users_id' => $request->get('fk_users_id'),
             'data_checkup' => $request->get('data_checkup'),
             'peso' => $request->get('peso'),
             'altura' => $request->get('altura'),
@@ -56,7 +71,7 @@ class CheckupController extends Controller
             'observacoes' => $request->get('observacoes')
         ]);
         $checkup->save();
-        return redirect('/checkup')->with('success', 'Checkup criado com sucesso!');
+        return redirect('checkup.index')->with('success', 'Checkup criado com sucesso!');
     }
 
     /**
@@ -67,7 +82,8 @@ class CheckupController extends Controller
      */
     public function show($id)
     {
-        //
+        $checkup = Checkup::find($id);
+        return view('checkup.show', compact('checkup'));
     }
 
     /**
@@ -78,7 +94,12 @@ class CheckupController extends Controller
      */
     public function edit($id)
     {
-        //
+        if(Auth::user()->tipo == 'medico'){
+            $checkup = Checkup::find($id);
+            return view('checkup.edit', compact('checkup'));
+
+        }
+        return redirect()->route('home');
     }
 
     /**
@@ -90,7 +111,30 @@ class CheckupController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $request->validate([
+            'data_checkup'=>'required|date|min:4|max:10',
+            'peso'=>'required|numeric|min:0.1|max:400',
+            'altura'=>'required|numeric|min:0.1|max:3',
+            'art_pressao'=>'required|string|min:4|max:30',
+            'glicose'=>'required|numeric|integer|min:1|max:200',
+            'colesterol_ldl'=>'required|numeric|min:1|max:200',
+            'colesterol_hdl'=>'required|numeric|min:2|max:100',
+            'observacoes'=>'required|string|min:1|max:500'
+        ]);
+
+        $checkup = Checkup::find($request->get('id'));
+
+        $checkup->data_checkup = $request->get('data_checkup');
+        $checkup->peso = $request->get('peso');
+        $checkup->altura = $request->get('altura');
+        $checkup->art_pressao = $request->get('art_pressao');
+        $checkup->glicose = $request->get('glicose');
+        $checkup->colesterol_ldl = $request->get('colesterol_ldl');
+        $checkup->colesterol_hdl = $request->get('colesterol_hdl');
+        $checkup->observacoes = $request->get('observacoes');
+        
+        $checkup->save();
+        return redirect('checkup.index')->with('success', 'Checkup alterado com sucesso!');
     }
 
     /**
@@ -101,6 +145,11 @@ class CheckupController extends Controller
      */
     public function destroy($id)
     {
-        //
+        if(Auth::user()->tipo == 'medico'){
+            $checkup = Checkup::find($id);
+            $checkup->delete();
+            return redirect('checkup.index')->with('success', 'Checkup deletado com sucesso!');
+        }
+        return redirect()->route('home');
     }
 }
