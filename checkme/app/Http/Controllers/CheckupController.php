@@ -23,7 +23,7 @@ class CheckupController extends Controller
      */
     public function create()
     {
-        //
+        return view('checkup.form');
     }
 
     /**
@@ -34,7 +34,29 @@ class CheckupController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'data_checkup'=>'required',
+            'peso'=>'required',
+            'altura'=>'required',
+            'art_pressao'=>'required',
+            'glicose'=>'required',
+            'colesterol_ldl'=>'required',
+            'colesterol_hdl'=>'required',
+            'observacoes'=>'required'
+        ]);
+
+        $checkup = new Checkup([
+            'data_checkup' => $request->get('data_checkup'),
+            'peso' => $request->get('peso'),
+            'altura' => $request->get('altura'),
+            'art_pressao' => $request->get('art_pressao'),
+            'glicose' => $request->get('glicose'),
+            'colesterol_ldl' => $request->get('colesterol_ldl'),
+            'colesterol_hdl' => $request->get('colesterol_hdl'),
+            'observacoes' => $request->get('observacoes')
+        ]);
+        $checkup->save();
+        return redirect('/checkup')->with('success', 'Checkup criado com sucesso!');
     }
 
     /**
